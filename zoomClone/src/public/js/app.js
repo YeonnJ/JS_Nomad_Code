@@ -1,45 +1,41 @@
-const messageList = document.querySelector("ul");
-const nickForm = document.querySelector("#nick");
-const messageForm = document.querySelector("#message");
-const socket = new WebSocket(`ws://${window.location.host}`);
+const socket = io();
 
-function makeMessage(type, payload) {
-  const msg = { type, payload };
-  return JSON.stringify(msg);
+const welcome = document.getElementById("welcome");
+const form = welcome.querySelector("form");
+const room = document.getElementById("room");
+
+room.hidden = true;
+
+let roomName = true;
+
+function showRoom() {
+  welcome.hidden = true;
+  room.hidden = false;
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName}`;
 }
 
-function handleOpen() {
-  console.log("Connected to Server ✅");
-}
-
-socket.addEventListener("open", handleOpen);
-
-socket.addEventListener("message", (message) => {
-  console.log("New message: ", message.data);
-});
-
-socket.addEventListener("close", () => {
-  console.log("Disconnected from Server ❌");
-});
-
-//chat으로 보내는 메세지
-function handleSubmit(event) {
+function handleRoomSubmit(event) {
   event.preventDefault();
-  const input = messageForm.querySelector("input");
-  socket.send(makeMessage("new_message", input.value));
-  const li = document.createElement("li");
-  li.innerText = `You: ${input.value}`;
-  messageList.append(li);
+  const input = form.querySelector("input");
+
+  socket.emit("enter_room", { payload: input.value }, showRoom);
+  roomName = input.value;
+  input.value = "";
+  //이벤트이름은 원하는대로 모두 가능
+  //socket.emit 과 socket.on에는 반드시 같은이름을 사용할 것
+
+  // socket.emit(
+  //   "enter_room",
+  //   { payload: input.value },
+  //   5,
+  //   true,
+  //   false,
+  //   "hi",
+  //   onChangeValue
+  //   );
+  // => 원하는 모든 데이터 전달이가능(함수는 반드시 마지막인자로)
   input.value = "";
 }
 
-//nick을 변경할때 서버로보내는 함수
-function handleNickSubmit(event) {
-  event.preventDefault();
-  const input = nickForm.querySelector("input");
-  socket.send(makeMessage("nickname", input.value));
-  input.value = "";
-}
-
-messageForm.addEventListener("submit", handleSubmit);
-nickForm.addEventListener("submit", handleNickSubmit);
+form.addEventListener("submit", handleRoomSubmit);

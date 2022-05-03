@@ -19,7 +19,7 @@ function showRoom() {
 
 function addMessage(message) {
   const ul = room.querySelector("ul");
-  const li = document.querySelector("li");
+  const li = document.createElement("li");
 
   li.innerText = message;
   ul.appendChild(li);
